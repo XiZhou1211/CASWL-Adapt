@@ -94,10 +94,6 @@ class MetaLinear(MetaModule):
     def __init__(self, *args, **kwargs):
         super().__init__()
         ignore = nn.Linear(*args, **kwargs)
-
-        #self.register_buffer('weight', to_var(ignore.weight.data, requires_grad=True))
-        #self.register_buffer('bias', to_var(ignore.bias.data, requires_grad=True))
-        # 使用 nn.Parameter 代替 register_buffer
         self.weight = nn.Parameter(ignore.weight.data, requires_grad=True)
         self.bias = nn.Parameter(ignore.bias.data, requires_grad=True)
 
@@ -111,10 +107,6 @@ class share(MetaModule):
     def __init__(self, input, hidden1, hidden2):
         super(share, self).__init__()
         self.layer = nn.Sequential(MetaLinear(input, hidden1), nn.ReLU(inplace=True))
-        # self.layer = nn.Sequential(
-        #     nn.Linear(input, hidden1),  # 使用 nn.Linear 替代 MetaLinear
-        #     nn.ReLU(inplace=True)
-        # )
 
     def forward(self, x):
         output = self.layer(x)
@@ -128,22 +120,14 @@ class task(MetaModule):
         self.layers = nn.ModuleList()
         for i in range(num_classes):
             self.layers.append(nn.Sequential(MetaLinear(hidden2, output), nn.Sigmoid() ))
-            #self.layers.append(nn.Sequential(nn.Linear(hidden2, output), nn.Sigmoid() ))
 
     def forward(self, x, num, c):
         si = x.shape[0]
         output = torch.tensor([]).cuda()
         #output = torch.tensor([])
 
-        #selected_networks = []  # 用于存储每个样本选择的网络索引
-
         for i in range(si):
-            #network_index = c[num[i]]
-            #selected_networks.append(network_index)
             output = torch.cat((output, self.layers[c[num[i]]]( x[i].unsqueeze(0) ) ),0)
-            
-        # 打印每个样本选择的网络索引
-        #print("Selected network indices for each sample:", selected_networks)
         
         return output
 
