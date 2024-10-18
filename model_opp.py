@@ -69,19 +69,6 @@ class ClassAwareWeightNetwork(nn.Module):
 
         return output
 
-# class WeightAllocator(nn.Module):
-#     def __init__(self, N_hid):
-#         super(WeightAllocator, self).__init__()
-#         self.N_hid = N_hid
-#         self.L1 = nn.Linear(2, self.N_hid)
-#         self.L2 = nn.Linear(self.N_hid, 1)            
-
-#     def forward(self, align_G, clsf):
-#         input1 = torch.stack([clsf, align_G], 1)
-#         x = F.relu(self.L1(input1))
-#         x = F.sigmoid(self.L2(x))
-#         return x   
-
 class ReverseLayerF(Function):
     @staticmethod
     def forward(ctx, x, alpha):
