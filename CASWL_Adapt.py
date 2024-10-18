@@ -244,7 +244,6 @@ class Solver(object):
             self.scheduler_fe.step()
             self.scheduler_d.step()
             self.scheduler_ac.step()
-            #self.scheduler_wa.step()
             self.scheduler_cs.step()
 
             train_c_acc_S.reset()
