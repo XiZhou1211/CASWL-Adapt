@@ -1,5 +1,5 @@
 # CASWL-Adapt (ECAI 2024)
-This is the official repository for our paper: Class-Aware Sample Weight Learning for Cross-Modal Unsupervised Domain Adaptation in Cross-User Wearable Human Activity Recognition. （Only the unimodal version has been released and will continue to update the remainder in the future.）
+This is the official repository for our paper: Class-Aware Sample Weight Learning for Cross-Modal Unsupervised Domain Adaptation in Cross-User Wearable Human Activity Recognition. （Only the unimodal version has been released and will continue to update the remainder in the future）
 
 ![CASWL-Adapt_framework](CASWL-Adapt.jpg)
 
