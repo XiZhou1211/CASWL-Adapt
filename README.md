@@ -23,3 +23,24 @@ Data preprocessing is included in main.py. Download the datasets and run CASWL-A
 ```
 python main.py --data_path [/path/to/dataset] --dataset [realWorld, OPPORTUNITY, or PAMAP2] 
 ```
+
+## Reference
+
+Our model is built from the following papers:
+```
+@inproceedings{
+    title={SWL-Adapt: An unsupervised domain adaptation model with sample weight learning for cross-user wearable human activity recognition},
+    author={Rong Hu and Ling Chen and Shenghuan Miao and Xing Tang},
+    booktitle={Proceedings of the AAAI Conference on Artificial IntelligenceThirty-seventh Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
+    year={2023},
+    url={https://ojs.aaai.org/index.php/AAAI/article/view/25743}
+}
+@Journal{
+    title={CMW-Net: Learning a Class-Aware Sample Weighting Mapping for Robust Deep Learning},
+    author={Jun Shu and Xiang Yuan and Deyu Meng and Zongben Xu},
+    booktitle={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+    year={2023},
+    url={https://ieeexplore.ieee.org/abstract/document/10113668}
+}
+
+```
