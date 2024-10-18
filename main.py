@@ -9,23 +9,16 @@ warnings.filterwarnings("ignore")
 
 def main(args):
     if args.dataset =='SBHAR':
-        args.WA_N_hid = 3
-        args.w_c_T = 0.001
         users_T = np.arange(15, 30, 1) 
         N_users = len(users_T)  
         preprocess.preprocess_SBHAR(args.dataset_path + 'SBHAR/', args.window_S, args.overlap_S)
     elif args.dataset =='OPPORTUNITY':
-        args.WA_N_hid = 5
-        args.w_c_T = 1
         users_T = np.arange(0, args.N_users_O, 1) 
         N_users = args.N_users_O   
         preprocess.preprocess_opportunity(args.dataset_path + 'OPPORTUNITY/', args.window_O, args.overlap_O)
     elif args.dataset =='realWorld':
-        args.WA_N_hid = 7
-        args.w_c_T = 1
         user_age = np.array([52, 26, 27, 26, 62, 24, 26, 36, 26, 26, 48, 16, 27, 26, 30])
-        users_T = np.where(user_age >= 30)[0] # source users idx, total users 0-14
-        #users_T = np.random.choice(np.arange(len(user_age)), size=5, replace=False) # source users idx, total users 0-14
+        users_T = np.random.choice(np.arange(len(user_age)), size=5, replace=False) # source users idx, total users 0-14
         N_users = len(users_T)
         preprocess.preprocess_realworld(args.dataset_path + 'realWorld/', args.window_R_s, args.overlap_R_r)
 
@@ -33,7 +26,6 @@ def main(args):
     for s in range(N_users):
         args.test_user = users_T[s]
         model = CASWL_Adapt.Solver(args)
-        #model = SWL_Adapt.Solver(args)
         print('\n=== ' + args.dataset + '_CASWL-Adapt_sub' + str(args.test_user) + ' ===')
         test_acc, test_f1 = model.train()
         acc[s] = test_acc
@@ -68,13 +60,12 @@ if __name__ == '__main__':
     parser.add_argument('--test_user', type=int, default=0, help='the new user')
     parser.add_argument('--seed', type=int, default=1, help='random seed, this is set to 1 to 5 for the 5 repeats in our experiments')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the subnetworks excluding weight allocator (Adam)')
-    parser.add_argument('--WA_lr', type=float, default=0.001, help='learning rate for CASWL (Adam) 0.001')
+    parser.add_argument('--WA_lr', type=float, default=0.001, help='learning rate for class-aware weight Network (Adam) 0.001')
     parser.add_argument('--N_steps', type=int, default=1000, help='the total number of steps')
     parser.add_argument('--N_steps_eval', type=int, default=10, help='the number of steps between adjacent evaluations')
     parser.add_argument('--batch_size', type=int, default=128, help='batch size for training')
     parser.add_argument('--confidence_rate', type=float, default=0.7, help='threshold of the classification confidence for the selection of pseudo labeled target samples, this is set to 0.7 for all datasets')
-    parser.add_argument('--WA_N_hid', type=int, help='the number of neurons in the hidden layer of weight allocator, this is set to 3 for SBHAR, 5 for OPPORTUNITY, and 7 for RealWorld')
-    parser.add_argument('--w_c_T', type=float, help='balancing parameter')
+
 
     args = parser.parse_args()
     main(args)
