@@ -31,7 +31,7 @@ Our model is built from the following papers:
 @inproceedings{
     title={SWL-Adapt: An unsupervised domain adaptation model with sample weight learning for cross-user wearable human activity recognition},
     author={Rong Hu and Ling Chen and Shenghuan Miao and Xing Tang},
-    booktitle={Proceedings of the AAAI Conference on Artificial IntelligenceThirty-seventh Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
+    booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
     year={2023},
     url={https://ojs.aaai.org/index.php/AAAI/article/view/25743}
 }
