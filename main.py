@@ -1,7 +1,6 @@
 from __future__ import print_function
 import argparse
 import CASWL_Adapt
-#import SWL_Adapt
 import preprocess
 import numpy as np
 import warnings
