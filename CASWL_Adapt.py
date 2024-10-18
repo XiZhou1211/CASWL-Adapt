@@ -53,33 +53,27 @@ class Solver(object):
         self.FE = FeatureExtracter(self.N_channels)
         self.D = Discriminator()
         self.AC = ActivityClassifier(self.N_classes)
-        #self.WA = WeightAllocator(args.WA_N_hid)
         self.CS = ClassAwareWeightNetwork(1, 100, 100, 1, 3)
         
         self.FE.cuda()
         self.D.cuda()
         self.AC.cuda()
-        #self.WA.cuda()
         self.CS.cuda()
         
         self.opt_fe = optim.Adam(self.FE.parameters(), lr=self.lr)
         self.opt_d = optim.Adam(self.D.parameters(), lr=self.lr)
         self.opt_ac = optim.Adam(self.AC.parameters(), lr=self.lr)
-        #self.opt_wa = optim.Adam(self.WA.parameters(), lr=args.WA_lr)
-        #print(f"CS parameters: {list(self.CS.parameters())}")
         self.opt_cs = optim.Adam(self.CS.parameters(), lr=args.WA_lr)
 
         self.scheduler_fe = optim.lr_scheduler.CosineAnnealingLR(self.opt_fe, self.N_eval)
         self.scheduler_d = optim.lr_scheduler.CosineAnnealingLR(self.opt_d, self.N_eval)
         self.scheduler_ac = optim.lr_scheduler.CosineAnnealingLR(self.opt_ac, self.N_eval)
-        #self.scheduler_wa = optim.lr_scheduler.CosineAnnealingLR(self.opt_wa, self.N_eval)
         self.scheduler_cs = optim.lr_scheduler.CosineAnnealingLR(self.opt_cs, self.N_eval)
 
     def reset_grad(self):
         self.opt_fe.zero_grad()
         self.opt_d.zero_grad()
         self.opt_ac.zero_grad()
-        #self.opt_wa.zero_grad()
         self.opt_cs.zero_grad()
 
     def forward_pass(self, inputs, out_type=None):
@@ -92,32 +86,6 @@ class Solver(object):
         if out_type != 'D':
             activity_clsf = self.AC(fused_feature)
         return disc, activity_clsf
-
-    # def ld_weight(self, logits_d, logits_ac, y=None, yd=None):
-    #     with torch.no_grad():
-    #         criterion_d = nn.BCEWithLogitsLoss(reduction='none').cuda()
-    #         loss_d = criterion_d(logits_d, yd)
-    #         criterion = nn.CrossEntropyLoss(reduce=False).cuda()
-    #         if y is None:
-    #             y = logits_ac.max(1)[1]
-    #         loss_c = criterion(logits_ac, y)
-        
-    #     d_w = self.WA(align_G=loss_d, clsf=loss_c)
-
-    #     scale = d_w.sum(dim=0)
-    #     if scale == 0:
-    #         scale = scale + 0.05
-    #         print('zero weights!')
-    #     d_w = d_w * self.batch_size / scale.repeat(128,1)
-
-    #     return d_w.reshape(-1)
-
-    def get_oll(self, logits_ac_T):
-        pseudo_y_T = logits_ac_T.max(1)[1]
-        certainty_y_T = logits_ac_T.softmax(dim=1).max(1)[0]
-        mask_T = certainty_y_T > self.confidence_rate
-        loss_c = torch.sum(F.cross_entropy(logits_ac_T, pseudo_y_T, reduction='none') * mask_T.float().detach())
-        return loss_c
 
     def train(self):
         print('\n>>> Start Training ...')
@@ -135,28 +103,19 @@ class Solver(object):
         step = 0
         self.train_loader_S_iter = iter(self.train_loader_S)
 
-        a = [0 for _ in range(self.N_classes)]  # 记录每个类别的样本数量
-        # 直接遍历 DataLoader
+        a = [0 for _ in range(self.N_classes)]  
         for batch in tqdm(self.train_loader_S, desc="Counting samples"):
             labels = batch[1]
             labels = torch.tensor(labels)
-            # 计算每个类别的样本数量
-            for label in labels.view(-1):  # 展平标签张量
+            for label in labels.view(-1):  
                 label_idx = label.item()
                 if 0 <= label_idx < self.N_classes:
-                    a[label_idx] += 1  # 直接增加样本数量
+                    a[label_idx] += 1  
                 else:
                     print(f"Invalid label index: {label_idx}")
         
-        # 将每个类别的计数转换为单个元素列表
+   
         a = [[count] for count in a] 
-        #print(a)
-        # 打印每个类别的样本数量
-        # for i in range(self.N_classes):
-        #     print(f"类别 {i} 的样本数量: {a[i][0]}")
-        # 打印总样本数
-        # print(f"总样本数: {sum(count[0] for count in a)}")  
-        
         es = KMeans(3)
         es.fit(a)
         c = es.labels_
@@ -168,13 +127,6 @@ class Solver(object):
         #         if i == j:
         #             w[i].append(a[k][0])
         #print(w)
-        # batch = next(self.train_loader_S_iter)  # 获取一个批次的数据
-        # 打印 batch 的数据类型和内容
-        # print("Batch type:", type(batch))
-        # print("Batch content:", batch)
-        # 打印每个元素的 shape
-        # print("Input data shape:", batch[0].shape)  # [batch_size, num_frames, num_features] torch.Size([128, 150, 3])
-        # print("Labels shape:", batch[1].shape)      # 打印标签的形状 torch.Size([128])
 
         self.train_loader_T_iter = iter(self.train_loader_T)
         for n_eval in range(self.N_eval):
@@ -227,9 +179,6 @@ class Solver(object):
                 else:
                     loss_c_T = 0
                 loss_c = loss_c_S + self.w_c_T * loss_c_T
-                
-                loss_c = torch.mean(loss_c_S)
-                #print("loss_c shape:", loss_c.shape)
 
                 loss_c.backward()
                 self.opt_fe.step()
@@ -263,7 +212,6 @@ class Solver(object):
                     v_lambda_T = 0
                     loss_c_T = 0
                 
-                # 使用更新后的权重网络重新计算源域损失并更新分类器
                 _, logits_ac_S = self.forward_pass(x_S, 'C')  
                 loss_c_S = criterion_c(logits_ac_S, y_S)
                 sample_cost_S = torch.reshape(loss_c_S, (len(loss_c_S), 1)) 
