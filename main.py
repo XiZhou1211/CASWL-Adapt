@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore")
 
 def main(args):
     if args.dataset =='SBHAR':
-        users_T = np.arange(15, 30, 1) 
+        users_T = np.arange(0, args.N_users_S, 1) 
         N_users = len(users_T)  
         preprocess.preprocess_SBHAR(args.dataset_path + 'SBHAR/', args.window_S, args.overlap_S)
     elif args.dataset =='OPPORTUNITY':
