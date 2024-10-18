@@ -168,18 +168,8 @@ class Solver(object):
                 """ step 1: update feature extractor and classifier"""
                 _, logits_ac_S = self.forward_pass(x_S, 'C')  
                 loss_c_S = criterion_c(logits_ac_S, y_S)
-
-                _, logits_ac_T = self.forward_pass(x_T)
-                with torch.no_grad():
-                    pseudo_y_T = logits_ac_T.max(1)[1]
-                    certainty_y_T = logits_ac_T.softmax(dim=1).max(1)[0]
-                    mask_C = (certainty_y_T > self.confidence_rate).float()
-                if mask_C.sum() > 0:
-                    loss_c_T = torch.sum(F.cross_entropy(logits_ac_T, pseudo_y_T, reduction='none') * mask_C)/mask_C.sum()
-                else:
-                    loss_c_T = 0
-                loss_c = loss_c_S + self.w_c_T * loss_c_T
-
+                loss_c = torch.mean(loss_c_S)
+                
                 loss_c.backward()
                 self.opt_fe.step()
                 self.opt_ac.step()
@@ -187,7 +177,6 @@ class Solver(object):
 
                 # track training losses and metrics
                 Loss_c += loss_c.item()
-                #Loss_c += loss_c.item()
                 train_c_acc_S(logits_ac_S.softmax(dim=-1), y_S)
                 train_c_f1_S(logits_ac_S.softmax(dim=-1), y_S)
 
